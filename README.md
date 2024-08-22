@@ -63,7 +63,7 @@ Le Dueling QR-DQN en inférence :
 *(Le fond de carte est purement a but décoratif, les cartes sont générées aléatoirement. La zone rouge désigne la zone de départ qui n'est plus considérée comme du circuit une fois le 1er objectif atteint)*
 
 
-Une des limites qui apparait dans cette petite démonstration est qu'une fois les positions de départ trouvée il devient très compliqué de dépasser un concurrent. Déjà car les agents possèdent le même modèle alors si un comportement permettant de passer en tête existait, le 1er robot l'aurait également choisi. Deuxièmement car ils vont déjà à la limite de la vitesse qui les restreint, à la manière des courses de formule 1 les revirements de situation sont assez rares. Bien que le robot rouge réussisse à un moment à passer en tête.
+Une des limites qui apparait dans cette petite démonstration est qu'une fois les positions de départ trouvées il devient très compliqué de dépasser un concurrent. Déjà car les agents possèdent le même modèle alors si un comportement permettant de passer en tête existait, le 1er robot l'aurait également choisi. Deuxièmement car ils vont déjà à la limite de la vitesse qui les restreint, à la manière des courses de formule 1 les revirements de situation sont assez rares. Bien que le robot rouge réussisse à un moment à passer en tête.
 
 
 # Références
