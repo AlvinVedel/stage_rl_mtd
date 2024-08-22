@@ -1,0 +1,235 @@
+Failure # 1 (occurred at 2024-06-18_18-22-01)
+[36mray::PPO.train()[39m (pid=13544, ip=127.0.0.1, actor_id=92b56b8fc25e6c5dfe7dd3a801000000, repr=PPO)
+  File "python\ray\_raylet.pyx", line 1675, in ray._raylet.execute_task
+  File "python\ray\_raylet.pyx", line 1615, in ray._raylet.execute_task.function_executor
+  File "C:\Python38\lib\site-packages\ray\_private\function_manager.py", line 726, in actor_method_executor
+    return method(__ray_actor, *args, **kwargs)
+  File "C:\Python38\lib\site-packages\ray\util\tracing\tracing_helper.py", line 467, in _resume_span
+    return method(self, *_args, **_kwargs)
+  File "C:\Python38\lib\site-packages\ray\tune\trainable\trainable.py", line 342, in train
+    raise skipped from exception_cause(skipped)
+  File "C:\Python38\lib\site-packages\ray\tune\trainable\trainable.py", line 339, in train
+    result = self.step()
+  File "C:\Python38\lib\site-packages\ray\util\tracing\tracing_helper.py", line 467, in _resume_span
+    return method(self, *_args, **_kwargs)
+  File "C:\Python38\lib\site-packages\ray\rllib\algorithms\algorithm.py", line 853, in step
+    results, train_iter_ctx = self._run_one_training_iteration()
+  File "C:\Python38\lib\site-packages\ray\util\tracing\tracing_helper.py", line 467, in _resume_span
+    return method(self, *_args, **_kwargs)
+  File "C:\Python38\lib\site-packages\ray\rllib\algorithms\algorithm.py", line 2854, in _run_one_training_iteration
+    results = self.training_step()
+  File "C:\Python38\lib\site-packages\ray\util\tracing\tracing_helper.py", line 467, in _resume_span
+    return method(self, *_args, **_kwargs)
+  File "C:\Python38\lib\site-packages\ray\rllib\algorithms\ppo\ppo.py", line 429, in training_step
+    train_batch = synchronous_parallel_sample(
+  File "C:\Python38\lib\site-packages\ray\rllib\execution\rollout_ops.py", line 85, in synchronous_parallel_sample
+    sample_batches = worker_set.foreach_worker(
+  File "C:\Python38\lib\site-packages\ray\rllib\evaluation\worker_set.py", line 680, in foreach_worker
+    handle_remote_call_result_errors(remote_results, self._ignore_worker_failures)
+  File "C:\Python38\lib\site-packages\ray\rllib\evaluation\worker_set.py", line 76, in handle_remote_call_result_errors
+    raise r.get()
+ray.exceptions.RayTaskError(ValueError): [36mray::RolloutWorker.apply()[39m (pid=11492, ip=127.0.0.1, actor_id=2bbdc648cc154e2a23573c1e01000000, repr=<ray.rllib.evaluation.rollout_worker.RolloutWorker object at 0x000001A81EDE6AC0>)
+ValueError: The two structures don't have the same nested structure.
+
+First structure: type=dict str={'image': array([[255, 255, 255, ...,   0,   0,   0],
+       [255, 255, 255, ...,   0,   0,   0],
+       [255, 255, 255, ...,   0,   0,   0],
+       ...,
+       [255, 255, 255, ...,   0,   0,   0],
+       [255, 255, 255, ...,   0,   0,   0],
+       [255, 255, 255, ...,   0,   0,   0]], dtype=uint8), 'data': [227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 1.3888888888888888, 70.0, 0, 1015.0409742772592, -137.83291600273162, 944.6663814381672, 0.5859400382148288, 984.5208285909401, -102.39016617345777, 939.9827484685932, 0.6353309755893738, 939.9827484685932, 1.0, 100.0, 0, 7200, 0, 12600]}
+
+Second structure: type=OrderedDict str=OrderedDict([('data', array([  -7470.324,  -95243.88 , -101852.46 ,  107373.99 , -306329.1  ,
+        173669.16 , -255614.08 ,  185892.69 ,   39923.562, -272744.78 ,
+       -234689.94 , -303250.47 ,  -74624.375,   77049.32 ,  136417.97 ,
+        214538.75 ,  305040.5  ,  -32631.428, -287368.16 ,   85012.734,
+       -212285.69 ,   -4592.779, -217055.44 , -133208.   , -312147.   ,
+       -215534.25 ,  107679.125,   67488.03 , -130638.97 ,  283161.94 ,
+        121664.945, -303714.6  , -248346.52 , -121778.96 , -317031.62 ,
+       -295323.56 ,  137449.36 ,  313760.47 ,  232957.48 ,  260226.25 ,
+        -29305.361,   11683.289], dtype=float32)), ('image', array([[[ 64],
+        [ 93],
+        [217],
+        ...,
+        [114],
+        [163],
+        [102]],
+
+       [[253],
+        [230],
+        [ 60],
+        ...,
+        [ 19],
+        [191],
+        [244]],
+
+       [[ 80],
+        [178],
+        [226],
+        ...,
+        [ 28],
+        [143],
+        [228]],
+
+       ...,
+
+       [[ 35],
+        [ 87],
+        [235],
+        ...,
+        [ 58],
+        [156],
+        [166]],
+
+       [[ 59],
+        [175],
+        [173],
+        ...,
+        [ 94],
+        [253],
+        [167]],
+
+       [[169],
+        [197],
+        [ 99],
+        ...,
+        [164],
+        [205],
+        [163]]], dtype=uint8))])
+
+More specifically: Substructure "type=list str=[227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 1.3888888888888888, 70.0, 0, 1015.0409742772592, -137.83291600273162, 944.6663814381672, 0.5859400382148288, 984.5208285909401, -102.39016617345777, 939.9827484685932, 0.6353309755893738, 939.9827484685932, 1.0, 100.0, 0, 7200, 0, 12600]" is a sequence, while substructure "type=ndarray str=[  -7470.324  -95243.88  -101852.46   107373.99  -306329.1    173669.16
+ -255614.08   185892.69    39923.562 -272744.78  -234689.94  -303250.47
+  -74624.375   77049.32   136417.97   214538.75   305040.5    -32631.428
+ -287368.16    85012.734 -212285.69    -4592.779 -217055.44  -133208.
+ -312147.    -215534.25   107679.125   67488.03  -130638.97   283161.94
+  121664.945 -303714.6   -248346.52  -121778.96  -317031.62  -295323.56
+  137449.36   313760.47   232957.48   260226.25   -29305.361   11683.289]" is not
+
+During handling of the above exception, another exception occurred:
+
+[36mray::RolloutWorker.apply()[39m (pid=11492, ip=127.0.0.1, actor_id=2bbdc648cc154e2a23573c1e01000000, repr=<ray.rllib.evaluation.rollout_worker.RolloutWorker object at 0x000001A81EDE6AC0>)
+  File "python\ray\_raylet.pyx", line 1669, in ray._raylet.execute_task
+  File "python\ray\_raylet.pyx", line 1769, in ray._raylet.execute_task
+  File "python\ray\_raylet.pyx", line 1675, in ray._raylet.execute_task
+  File "python\ray\_raylet.pyx", line 1615, in ray._raylet.execute_task.function_executor
+  File "C:\Python38\lib\site-packages\ray\_private\function_manager.py", line 726, in actor_method_executor
+    return method(__ray_actor, *args, **kwargs)
+  File "C:\Python38\lib\site-packages\ray\util\tracing\tracing_helper.py", line 467, in _resume_span
+    return method(self, *_args, **_kwargs)
+  File "C:\Python38\lib\site-packages\ray\rllib\utils\actor_manager.py", line 185, in apply
+    raise e
+  File "C:\Python38\lib\site-packages\ray\rllib\utils\actor_manager.py", line 176, in apply
+    return func(self, *args, **kwargs)
+  File "C:\Python38\lib\site-packages\ray\rllib\execution\rollout_ops.py", line 86, in <lambda>
+    lambda w: w.sample(), local_worker=False, healthy_only=True
+  File "C:\Python38\lib\site-packages\ray\util\tracing\tracing_helper.py", line 467, in _resume_span
+    return method(self, *_args, **_kwargs)
+  File "C:\Python38\lib\site-packages\ray\rllib\evaluation\rollout_worker.py", line 696, in sample
+    batches = [self.input_reader.next()]
+  File "C:\Python38\lib\site-packages\ray\rllib\evaluation\sampler.py", line 92, in next
+    batches = [self.get_data()]
+  File "C:\Python38\lib\site-packages\ray\rllib\evaluation\sampler.py", line 277, in get_data
+    item = next(self._env_runner)
+  File "C:\Python38\lib\site-packages\ray\rllib\evaluation\env_runner_v2.py", line 344, in run
+    outputs = self.step()
+  File "C:\Python38\lib\site-packages\ray\rllib\evaluation\env_runner_v2.py", line 370, in step
+    active_envs, to_eval, outputs = self._process_observations(
+  File "C:\Python38\lib\site-packages\ray\rllib\evaluation\env_runner_v2.py", line 637, in _process_observations
+    processed = policy.agent_connectors(acd_list)
+  File "C:\Python38\lib\site-packages\ray\rllib\connectors\agent\pipeline.py", line 41, in __call__
+    ret = c(ret)
+  File "C:\Python38\lib\site-packages\ray\rllib\connectors\connector.py", line 265, in __call__
+    return [self.transform(d) for d in acd_list]
+  File "C:\Python38\lib\site-packages\ray\rllib\connectors\connector.py", line 265, in <listcomp>
+    return [self.transform(d) for d in acd_list]
+  File "C:\Python38\lib\site-packages\ray\rllib\connectors\agent\obs_preproc.py", line 58, in transform
+    d[SampleBatch.NEXT_OBS] = self._preprocessor.transform(
+  File "C:\Python38\lib\site-packages\ray\rllib\models\preprocessors.py", line 317, in transform
+    self.check_shape(observation)
+  File "C:\Python38\lib\site-packages\ray\rllib\models\preprocessors.py", line 69, in check_shape
+    observation = convert_element_to_space_type(
+  File "C:\Python38\lib\site-packages\ray\rllib\utils\spaces\space_utils.py", line 382, in convert_element_to_space_type
+    return tree.map_structure(map_, element, sampled_element, check_types=False)
+  File "C:\Python38\lib\site-packages\tree\__init__.py", line 433, in map_structure
+    assert_same_structure(structures[0], other, check_types=check_types)
+  File "C:\Python38\lib\site-packages\tree\__init__.py", line 288, in assert_same_structure
+    raise type(e)("%s\n"
+ValueError: The two structures don't have the same nested structure.
+
+First structure: type=dict str={'image': array([[255, 255, 255, ...,   0,   0,   0],
+       [255, 255, 255, ...,   0,   0,   0],
+       [255, 255, 255, ...,   0,   0,   0],
+       ...,
+       [255, 255, 255, ...,   0,   0,   0],
+       [255, 255, 255, ...,   0,   0,   0],
+       [255, 255, 255, ...,   0,   0,   0]], dtype=uint8), 'data': [227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 1.3888888888888888, 70.0, 0, 1015.0409742772592, -137.83291600273162, 944.6663814381672, 0.5859400382148288, 984.5208285909401, -102.39016617345777, 939.9827484685932, 0.6353309755893738, 939.9827484685932, 1.0, 100.0, 0, 7200, 0, 12600]}
+
+Second structure: type=OrderedDict str=OrderedDict([('data', array([  -7470.324,  -95243.88 , -101852.46 ,  107373.99 , -306329.1  ,
+        173669.16 , -255614.08 ,  185892.69 ,   39923.562, -272744.78 ,
+       -234689.94 , -303250.47 ,  -74624.375,   77049.32 ,  136417.97 ,
+        214538.75 ,  305040.5  ,  -32631.428, -287368.16 ,   85012.734,
+       -212285.69 ,   -4592.779, -217055.44 , -133208.   , -312147.   ,
+       -215534.25 ,  107679.125,   67488.03 , -130638.97 ,  283161.94 ,
+        121664.945, -303714.6  , -248346.52 , -121778.96 , -317031.62 ,
+       -295323.56 ,  137449.36 ,  313760.47 ,  232957.48 ,  260226.25 ,
+        -29305.361,   11683.289], dtype=float32)), ('image', array([[[ 64],
+        [ 93],
+        [217],
+        ...,
+        [114],
+        [163],
+        [102]],
+
+       [[253],
+        [230],
+        [ 60],
+        ...,
+        [ 19],
+        [191],
+        [244]],
+
+       [[ 80],
+        [178],
+        [226],
+        ...,
+        [ 28],
+        [143],
+        [228]],
+
+       ...,
+
+       [[ 35],
+        [ 87],
+        [235],
+        ...,
+        [ 58],
+        [156],
+        [166]],
+
+       [[ 59],
+        [175],
+        [173],
+        ...,
+        [ 94],
+        [253],
+        [167]],
+
+       [[169],
+        [197],
+        [ 99],
+        ...,
+        [164],
+        [205],
+        [163]]], dtype=uint8))])
+
+More specifically: Substructure "type=list str=[227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 227.95190832521905, -660.2172328406566, 1.3888888888888888, 70.0, 0, 1015.0409742772592, -137.83291600273162, 944.6663814381672, 0.5859400382148288, 984.5208285909401, -102.39016617345777, 939.9827484685932, 0.6353309755893738, 939.9827484685932, 1.0, 100.0, 0, 7200, 0, 12600]" is a sequence, while substructure "type=ndarray str=[  -7470.324  -95243.88  -101852.46   107373.99  -306329.1    173669.16
+ -255614.08   185892.69    39923.562 -272744.78  -234689.94  -303250.47
+  -74624.375   77049.32   136417.97   214538.75   305040.5    -32631.428
+ -287368.16    85012.734 -212285.69    -4592.779 -217055.44  -133208.
+ -312147.    -215534.25   107679.125   67488.03  -130638.97   283161.94
+  121664.945 -303714.6   -248346.52  -121778.96  -317031.62  -295323.56
+  137449.36   313760.47   232957.48   260226.25   -29305.361   11683.289]" is not
+Entire first structure:
+{'image': ., 'data': [., ., ., ., ., ., ., ., ., ., ., ., ., ., ., ., ., ., ., ., ., ., ., ., ., ., ., ., ., ., ., ., ., ., ., ., ., ., ., ., ., .]}
+Entire second structure:
+OrderedDict([('data', .), ('image', .)])

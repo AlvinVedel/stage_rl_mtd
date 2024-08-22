@@ -1,0 +1,305 @@
+track_drawings:
+    rayon_bouee: 23 
+    bouees: 
+        - center:
+            x: 441
+            y: 342
+        - center:
+            x: 978
+            y: 86
+    big_hexagon:
+        - vertex:
+            x: 1031
+            y: 140
+        - vertex:
+            x: 1056
+            y: 48
+        - vertex:
+            x: 983
+            y: 11
+        - vertex:
+            x: 381
+            y: 293
+        - vertex:
+            x: 379
+            y: 373
+        - vertex:
+            x: 451
+            y: 412
+            
+    small_hexagon:
+        - vertex:
+            x: 1000
+            y: 104
+        - vertex:
+            x: 1008
+            y: 71
+        - vertex:
+            x: 979
+            y: 57
+        - vertex:
+            x: 417
+            y: 324
+        - vertex:
+            x: 415
+            y: 356
+        - vertex:
+            x: 443
+            y: 369
+    
+    
+    
+    
+    starting_polygon:
+        - vertex:
+            x: 238
+            y: 712
+        - vertex:
+            x: 1031
+            y: 140
+        - vertex:
+            x: 1000
+            y: 104
+        - vertex:
+            x: 213
+            y: 655
+      
+    quadrilaterals:
+        - quadrilateral:
+            - vertex:
+                x: 238
+                y: 712
+            - vertex:
+                x: 213
+                y: 655
+            - vertex:
+                x: 1031
+                y: 140
+            - vertex:
+                x: 1000
+                y: 104
+        - quadrilateral:        
+            - vertex:
+                x: 1031
+                y: 140
+            - vertex:
+                x: 1000
+                y: 104
+            - vertex:
+                x: 1056
+                y: 48
+            - vertex:
+                x: 1008
+                y: 71
+        - quadrilateral:
+            - vertex:
+                x: 1056
+                y: 48
+            - vertex:
+                x: 1008
+                y: 71
+            - vertex:
+                x: 983
+                y: 11
+            - vertex:
+                x: 979
+                y: 57    
+        - quadrilateral:        
+            - vertex:
+                x: 983
+                y: 11
+            - vertex:
+                x: 979
+                y: 57
+            - vertex:
+                x: 381
+                y: 293
+            - vertex:
+                x: 417
+                y: 324
+        - quadrilateral:        
+            - vertex:
+                x: 381
+                y: 293
+            - vertex:
+                x: 417
+                y: 324
+            - vertex:
+                x: 379
+                y: 373
+            - vertex:
+                x: 415
+                y: 356
+        - quadrilateral:        
+            - vertex:
+                x: 379
+                y: 373
+            - vertex:
+                x: 415
+                y: 356
+            - vertex:
+                x: 451
+                y: 412
+            - vertex:
+                x: 443
+                y: 369
+        - quadrilateral:        
+            - vertex:
+                x: 451
+                y: 412
+            - vertex:
+                x: 443
+                y: 369
+            - vertex:
+                x: 1031
+                y: 140
+            - vertex:
+                x: 1000
+                y: 104
+    
+    
+    
+            
+energy_boat_parameters:
+
+    activate_pilot_behavior: 0
+
+    max_race_time: 14400
+    
+    max_loop_track_time: 12600
+    
+    critical_battery_level: 10
+    
+    sufficient_battery_level: 20
+    
+    minimal_required_laps: 28
+    
+    base_consumption_rate: 0.025
+    
+    speed_consumption_factor: 0.001
+    
+    time_scaling_factor: 1
+    
+    concurrents_time_scaling_factor: 1
+    
+    detection_ranges: [3, 6, 9, 12, 15, 18, 21]
+    
+    detection_ranges_for_display: [15, 30, 45, 60, 75, 90, 105]
+      
+    detector_angle_of_view: 110
+    
+    nb_detection_sectors: 13
+    
+    directions: [-57.0, -47.5, -38.0, -28.5, -19.0, -9.5, 0.0, 9.5, 19.0, 28.5, 38.0, 47.5, 57.0]
+    
+    detector_values :
+        - [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        - [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        - [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        - [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        - [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        - [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        - [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+       
+    
+    speeds: [0.5, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0]
+    
+    concurrents_speeds: [0.8, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0]
+    
+    max_speed_change: 5.0 
+    
+    max_direction_change_base: 50.0 
+    
+    min_direction_change: 5.0 
+    
+    frames_per_second: 5
+        
+    distance_ref_m : 138.4
+    
+    distance_ref_px : 140.576
+    
+    earth_radius: 6378137
+    
+    lat_lon_point_ref_one: [43.73754, 7.42912]
+    
+    image_point_ref_one: [137, 547]
+    
+    lat_lon_point_ref_two: [43.73634, 7.42980]
+    
+    image_point_ref_two: [191, 677]
+    
+    max_speed_km_h : 30  
+    
+    eboat_starting_point : [235, 678]
+    
+    eboat_starting_direction : 70.0
+    
+    eboat_random_starting_line :
+        - vertex:
+            x: 247
+            y: 704
+        - vertex:
+            x: 222
+            y: 650
+    
+    
+    eboat_random_starting_zone:
+        - vertex:
+            x: 238
+            y: 712
+        - vertex:
+            x: 291
+            y: 672
+        - vertex:
+            x: 266
+            y: 620
+        - vertex:
+            x: 213
+            y: 655 
+
+    concurrents_random_starting_zone :
+        - vertex:
+            x: 280
+            y: 680
+        - vertex:
+            x: 351
+            y: 629    
+        - vertex:
+            x: 323
+            y: 579 
+        - vertex:
+            x: 252
+            y: 629
+    
+           
+        
+    random_starting_zone_two:
+        - vertex:
+            x: 983
+            y: 11
+        - vertex:
+            x: 936
+            y: 34
+        - vertex:
+            x: 931
+            y: 80
+        - vertex:
+            x: 979
+            y: 57
+            
+    random_starting_zone_three:
+        - vertex:
+            x: 451
+            y: 412
+        - vertex:
+            x: 492
+            y: 393
+        - vertex:
+            x: 487
+            y: 347 
+        - vertex:
+            x: 443
+            y: 369            
+            
+            
+        

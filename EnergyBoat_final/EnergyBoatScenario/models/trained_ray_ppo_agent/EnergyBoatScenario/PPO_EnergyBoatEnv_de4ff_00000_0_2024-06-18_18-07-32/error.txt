@@ -1,0 +1,70 @@
+Failure # 1 (occurred at 2024-06-18_18-07-51)
+The actor died because of an error raised in its creation task, [36mray::PPO.__init__()[39m (pid=8436, ip=127.0.0.1, actor_id=5ae16279faa66887380c9fc201000000, repr=PPO)
+  File "C:\Python38\lib\site-packages\ray\rllib\evaluation\worker_set.py", line 227, in _setup
+    self.add_workers(
+  File "C:\Python38\lib\site-packages\ray\rllib\evaluation\worker_set.py", line 593, in add_workers
+    raise result.get()
+  File "C:\Python38\lib\site-packages\ray\rllib\utils\actor_manager.py", line 481, in __fetch_result
+    result = ray.get(r)
+  File "C:\Python38\lib\site-packages\ray\_private\auto_init_hook.py", line 24, in auto_init_wrapper
+    return fn(*args, **kwargs)
+  File "C:\Python38\lib\site-packages\ray\_private\client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Python38\lib\site-packages\ray\_private\worker.py", line 2565, in get
+    raise value
+ray.exceptions.RayActorError: The actor died because of an error raised in its creation task, [36mray::RolloutWorker.__init__()[39m (pid=14300, ip=127.0.0.1, actor_id=82bd8eba87ea5dc7d99f634901000000, repr=<ray.rllib.evaluation.rollout_worker.RolloutWorker object at 0x000001BBEF116A00>)
+  File "C:\Users\Zamirddine\Documents\PLATFORM\EnergyBoat_V2\EnergyBoatScenario\env.py", line 360, in reset
+    self.eBoat.get_pyboat_object().get_concurrents_position_and_check_collision(self.concurrents)
+  File "C:\Users\Zamirddine\Documents\PLATFORM\EnergyBoat_V2\EnergyBoatScenario\utils_env.py", line 1358, in get_concurrents_position_and_check_collision
+    self.moveDetectorFieldOfView()
+  File "C:\Users\Zamirddine\Documents\PLATFORM\EnergyBoat_V2\EnergyBoatScenario\utils_env.py", line 1471, in moveDetectorFieldOfView
+    (self.current_point[0] + detection_range * math.cos(angle), self.current_point[1] + detection_range * math.sin(angle)),
+IndexError: list index out of range
+
+During handling of the above exception, another exception occurred:
+
+[36mray::RolloutWorker.__init__()[39m (pid=14300, ip=127.0.0.1, actor_id=82bd8eba87ea5dc7d99f634901000000, repr=<ray.rllib.evaluation.rollout_worker.RolloutWorker object at 0x000001BBEF116A00>)
+  File "python\ray\_raylet.pyx", line 1669, in ray._raylet.execute_task
+  File "python\ray\_raylet.pyx", line 1769, in ray._raylet.execute_task
+  File "python\ray\_raylet.pyx", line 1675, in ray._raylet.execute_task
+  File "python\ray\_raylet.pyx", line 1615, in ray._raylet.execute_task.function_executor
+  File "C:\Python38\lib\site-packages\ray\_private\function_manager.py", line 726, in actor_method_executor
+    return method(__ray_actor, *args, **kwargs)
+  File "C:\Python38\lib\site-packages\ray\util\tracing\tracing_helper.py", line 467, in _resume_span
+    return method(self, *_args, **_kwargs)
+  File "C:\Python38\lib\site-packages\ray\rllib\evaluation\rollout_worker.py", line 397, in __init__
+    self.env = env_creator(copy.deepcopy(self.env_context))
+  File "C:\Python38\lib\site-packages\ray\rllib\env\utils.py", line 166, in _gym_env_creator
+    obs_and_infos = env.reset(seed=None, options={})
+  File "C:\Python38\lib\site-packages\gymnasium\wrappers\compatibility.py", line 100, in reset
+    return self.env.reset(), {}
+  File "C:\Users\Zamirddine\Documents\PLATFORM\EnergyBoat_V2\EnergyBoatScenario\env.py", line 360, in reset
+    self.eBoat.get_pyboat_object().get_concurrents_position_and_check_collision(self.concurrents)
+  File "C:\Users\Zamirddine\Documents\PLATFORM\EnergyBoat_V2\EnergyBoatScenario\utils_env.py", line 1358, in get_concurrents_position_and_check_collision
+    self.moveDetectorFieldOfView()
+  File "C:\Users\Zamirddine\Documents\PLATFORM\EnergyBoat_V2\EnergyBoatScenario\utils_env.py", line 1471, in moveDetectorFieldOfView
+    (self.current_point[0] + detection_range * math.cos(angle), self.current_point[1] + detection_range * math.sin(angle)),
+IndexError: list index out of range
+
+During handling of the above exception, another exception occurred:
+
+[36mray::PPO.__init__()[39m (pid=8436, ip=127.0.0.1, actor_id=5ae16279faa66887380c9fc201000000, repr=PPO)
+  File "python\ray\_raylet.pyx", line 1669, in ray._raylet.execute_task
+  File "python\ray\_raylet.pyx", line 1769, in ray._raylet.execute_task
+  File "python\ray\_raylet.pyx", line 1675, in ray._raylet.execute_task
+  File "python\ray\_raylet.pyx", line 1615, in ray._raylet.execute_task.function_executor
+  File "C:\Python38\lib\site-packages\ray\_private\function_manager.py", line 726, in actor_method_executor
+    return method(__ray_actor, *args, **kwargs)
+  File "C:\Python38\lib\site-packages\ray\util\tracing\tracing_helper.py", line 467, in _resume_span
+    return method(self, *_args, **_kwargs)
+  File "C:\Python38\lib\site-packages\ray\rllib\algorithms\algorithm.py", line 517, in __init__
+    super().__init__(
+  File "C:\Python38\lib\site-packages\ray\tune\trainable\trainable.py", line 161, in __init__
+    self.setup(copy.deepcopy(self.config))
+  File "C:\Python38\lib\site-packages\ray\util\tracing\tracing_helper.py", line 467, in _resume_span
+    return method(self, *_args, **_kwargs)
+  File "C:\Python38\lib\site-packages\ray\rllib\algorithms\algorithm.py", line 639, in setup
+    self.workers = WorkerSet(
+  File "C:\Python38\lib\site-packages\ray\rllib\evaluation\worker_set.py", line 179, in __init__
+    raise e.args[0].args[2]
+IndexError: list index out of range
