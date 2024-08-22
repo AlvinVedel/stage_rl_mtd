@@ -31,6 +31,15 @@ On distinguera 2 types d'approches dans ce contexte :
 - L'utilisation d'un *VAE* pré-entrainé sur des observations côniques avant d'injecter le vecteur au réseau
 - L'utilisation d'une couche variationnelle entre le Flatten et l'estimation des Q-valeurs.
 
+# Optimisation & parallélisation
+Les entrainements de Reinforcement Learning peuvent être très coûteux en terme de ressources CPU:GPU et de temps. Pour limiter le problème, l'utilisation du calcul matriciel offert par Numpy a largement été sollicité. Certains bonnes pratiques ont également été mise en place : allocation mémoire en avance avec des np.zeros, utilisation des librairies random et math pour les opérations ponctuelles, tests de performances dans des boucles for...
+
+La parallélisation du problème RL n'est pas triviale et nécessite une certaine organisation. 
+La parallèlisation de premier niveau qui a été mise en place consiste à créer des *WorkerProcess* avec la librairie multiprocessing. Chaque Worker héberge N environnements de 4 agents et chaque script principal qui est associé à 1 GPU crée M Workers. Cela résulte en M\*N\*4 observations simultanées. (Pas réellement simultanées étant données que les N environnements de chaque Worker sont jouées séquentiellement). 
+On attend donc de recevoir ce batch d'observations pour produire un batch d'actions et stockées l'ensemble dans transitions (s, a, r, s') dans une mémoire commune.
+
+La parallélisation de second niveau consiste simplement à mettre tout cet entrainement dans un Thread de la librairie Threading, étant donné que ce n'est pas le script principal mais les workers qui consomment les ressources CPU on peut se permettre d'accumuler plusieurs threads. Avec un système de verrous on fait accéder les Threads au GPU commun ce qui permet de le solliciter davantage. 
+Chaque Thread possède des informations uniques ce qui permet d'entrainer des modèles en parallèles sur le même GPU
 
 # Résultats
 Le Q-Learning classique du DQN offre des résultats assez limités, c'est en partie du à l'uniformité du reward étant donné qu'une action impacte peu l'environnement. Cependant en implémentant le QR-DQN et une variante Dueling du QR-DQN (nommée comme DQR-DQN) on arrive à significativement améliorer les performances en doublant presque le nombre de points de passage atteints. Et cela même lors de l'utilisation de réseaux variationnels. Plus de détails dans les graphiques.
