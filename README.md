@@ -18,20 +18,20 @@ La parallélisation s'est effectué à l'aide des librairies threading et multip
 ## Contexte
 4 agents s'affrontent lors d'une course, ils doivent atteindre le maximum de "points de passage" (gateways) tout en évitant les obstacles ou les concurrents. Pour cela ils peuvent choisir entre plusieurs actions : freiner fortement ou légèrement, garder une vitesse constante, accélérer légèrement ou fortement ; idem pour l'orientation : tourner fortement ou légèrement à droite, cap constant, tourner fortement ou légèrement à gauche. Cela se traduit par +/-1.5 pour l'accélération forte, +/-0.6 pour l'accélération légère dans la vitesse et +/-15°, +/-6° dans l'orientation. Cela se combine alors en 25 couples d'actions distincts. 
 
-## Observations <img src="old_version/img/obs.png" alt="Icon" style="width:30px; height:30px;"/>
+## Observations ![Satellite](https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/svgs/solid/satellite-dish.svg)
 Les observations de l'agent se résument en 2 types, d'une part l'observation extérieur du circuit qui est pris sous forme d'une cône devant l'agent (il voit dans un cône de 110° centré en sa direction et d'une distance de 40m, on considère qu'un obstacle dans le cône obstrue la vue et empêche de voir derrière). La deuxième catégorie d'observation concerne le robot en lui même : orientation, vitesse, direction de l'objectif, direction de l'objectif d'après (objectif = gateway), distance à l'objectif et batterie.
 
-## Le réseau <img src="old_version/img/nn.png" alt="Icon" style="width:30px; height:30px;"/>
+## Le réseau ![Circuit Board](https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/svgs/solid/circuit-board.svg)
 2 types de réseaux qui diffèrent sur la fusion des modalités d'observation ont été proposés. Le modèle 1 correspond à une fusion "précoce" des modalités, on fait passer le cône dans une convolution 1D avec un kernel de 1 (car il n'y a pas de corrélation spatiale entre les éléments) puis on tile les informations du robot (après les avoir embeddé) de façon à obtenir 2 matrices 220x32 que l'on peut alors concaténer et refaire passer dans des convolutions 1D avant de Flatten.
 La 2ème approche est plus simple étant donné qu'elle Flatten le cone embeddé par une convolution 1D puis concatène le résultat avec les informations du robot embeddées en un seul vecteur de 220x32+32 éléments. On la désigne sous le nom de fusion "tardive".
 
-# Sortir de la simulation
+# Sortir de la simulation ![Sine Wave](https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/svgs/solid/sine-wave.svg)
 Un aspect particulièrement intéressant du stage a été d'appréhender la sortie de l'agent hors simulation et essayer de le rendre robuste à de potentielles variations en utilisant des Variational Auto Encoder. 
 On distinguera 2 types d'approches dans ce contexte : 
 - L'utilisation d'un *VAE* pré-entrainé sur des observations côniques avant d'injecter le vecteur au réseau
 - L'utilisation d'une couche variationnelle entre le Flatten et l'estimation des Q-valeurs.
 
-# Optimisation & parallélisation <img src="old_version/img/gpu.png" alt="Icon" style="width:30px; height:30px;"/>
+# Optimisation & parallélisation ![Cpu](https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/svgs/solid/cpu.svg)
 Les entrainements de Reinforcement Learning peuvent être très coûteux en terme de ressources CPU:GPU et de temps. Pour limiter le problème, l'utilisation du calcul matriciel offert par Numpy a largement été sollicité. Certains bonnes pratiques ont également été mise en place : allocation mémoire en avance avec des np.zeros, utilisation des librairies random et math pour les opérations ponctuelles, tests de performances dans des boucles for...
 
 La parallélisation du problème RL n'est pas triviale et nécessite une certaine organisation. 
