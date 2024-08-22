@@ -31,7 +31,7 @@ On distinguera 2 types d'approches dans ce contexte :
 - L'utilisation d'un *VAE* pré-entrainé sur des observations côniques avant d'injecter le vecteur au réseau
 - L'utilisation d'une couche variationnelle entre le Flatten et l'estimation des Q-valeurs.
 
-# Optimisation & parallélisation
+# Optimisation & parallélisation ![test](old_version/img/gpu.png)
 Les entrainements de Reinforcement Learning peuvent être très coûteux en terme de ressources CPU:GPU et de temps. Pour limiter le problème, l'utilisation du calcul matriciel offert par Numpy a largement été sollicité. Certains bonnes pratiques ont également été mise en place : allocation mémoire en avance avec des np.zeros, utilisation des librairies random et math pour les opérations ponctuelles, tests de performances dans des boucles for...
 
 La parallélisation du problème RL n'est pas triviale et nécessite une certaine organisation. 
