@@ -1,0 +1,3 @@
+# Commentaire
+
+Les 3 courbes d'entrainement *model2_(dim_vae)* ont été interrompues avant la fin des 20 000 épisodes car les modèles non distribuées ont été jugées trop mauvais et poursuivre l'entrainement aurait été une perte de ressources et de temps. Il faut néanmoins noter que le nombre de gateways franchis est équivalent à celui d'un DQN recevant en entrée le cône réel, pas de baisse de performances à constater.  
