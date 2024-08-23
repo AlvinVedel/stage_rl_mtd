@@ -3,7 +3,9 @@ Librairies et version
 
 PYTHON==3.8.10
 - numpy 1.23.5
-- tensorflow-gpu 2.4.1  (tensorflow 2.13.1
+- tensorflow-gpu 2.4.1  (tensorflow 2.13.1)
 
 - pillow 10.3.0
 - matplotlib 3.2.2
+- pandas 2.0.3
+- gymnasium 0.28.1

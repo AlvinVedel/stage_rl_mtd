@@ -9,6 +9,7 @@ import random
 import multiprocessing as mp
 from EnergyBoatScenario.utils_env import *
 from VAE.VAE import CVAE
+import pandas as pd
 
 
 
@@ -721,3 +722,190 @@ class VariationalThreadProcess(threading.Thread) :
                     pipe.send("EXIT")
                 break
 
+
+
+
+
+from EnergyBoatScenario.env import EnergyBoatEnv
+
+class InferenceThreadProcess(threading.Thread) :
+    def __init__(self, thread_id, model, gpu_lock, names, basic_map=True, distributional=True, nb_inferences=10, save_metrics=True, render=False, nb_agents=4) :
+        """
+        names doit être un dictionnaire avec un attribut "gif_name" si render=True et un attribut "metrics_name" si save_metrics=True 
+        gif name doit etre un préfixe auquel sera collé le n° d'épisodes et .gif 
+        metrics_name doit etre un nom complet en .csv
+        
+        basic_map : bool    correspond à la carte affichée, si True on utilise le circuit original, sinon carte aléatoire
+        """
+        super().__init__()
+        self.thread_id = thread_id
+        self.gpu_lock = gpu_lock
+        self.names = names
+        self.render = render
+        self.save_metrics=save_metrics
+        self.max_episodes = nb_inferences
+        self.nb_agents = nb_agents
+        self.basic_map = True
+        if self.save_metrics :
+            self.metrics_buffer = np.zeros((self.max_episodes, self.nb_agents, 4))  
+            # pour chaque épisode et chaque agent on stocke nb_gateways, nb_steps, panne (bool), colisions (bool)
+        if self.render :
+            self.frames_buffer = []
+        
+        
+        self.frames_count = 0
+        self.episodes_count = 0    
+        with self.gpu_lock :
+            self.model_main = model
+
+        self.directory = './EnergyBoatScenario/'
+        self.track_parameters_file = './scenario_parameters.yaml'
+        self.env_config ={
+            "render_flag": True,
+            "activate_pilot_behavior": load_values_from_yaml(self.track_parameters_file , 'energy_boat_parameters', 'activate_pilot_behavior'),
+            "monaco_map":self.directory + 'assets/monaco_map_bgd.png',
+            "font":self.directory + 'assets/font/arial.ttf',
+            "implementation":"simple",
+            "critical_battery_level": load_values_from_yaml(self.track_parameters_file , 'energy_boat_parameters', 'critical_battery_level'),
+            "sufficient_battery_level": load_values_from_yaml(self.track_parameters_file , 'energy_boat_parameters', 'sufficient_battery_level'),
+            "minimal_required_laps": load_values_from_yaml(self.track_parameters_file , 'energy_boat_parameters', 'minimal_required_laps'),
+            "time_scaling_factor": load_values_from_yaml(self.track_parameters_file , 'energy_boat_parameters', 'time_scaling_factor'),
+            "max_race_time": load_values_from_yaml(self.track_parameters_file , 'energy_boat_parameters', 'max_race_time'),
+            "max_loop_track_time": load_values_from_yaml(self.track_parameters_file , 'energy_boat_parameters', 'max_loop_track_time'),
+            "base_consumption_rate": load_values_from_yaml(self.track_parameters_file , 'energy_boat_parameters', 'base_consumption_rate'),
+            "speed_consumption_factor": load_values_from_yaml(self.track_parameters_file , 'energy_boat_parameters', 'speed_consumption_factor'),
+            "rayon_bouee": load_values_from_yaml(self.track_parameters_file , 'track_drawings', 'rayon_bouee'),
+            "bouees": load_bouees_from_yaml(self.track_parameters_file , 'track_drawings', 'bouees'),
+            "big_hexagon": load_polygon_from_yaml(self.track_parameters_file , 'track_drawings', 'big_hexagon'),
+            "small_hexagon": load_polygon_from_yaml(self.track_parameters_file , 'track_drawings', 'small_hexagon'),
+            "starting_zone_polygon":load_polygon_from_yaml(self.track_parameters_file , 'track_drawings', 'starting_polygon'),
+            "quadrilaterals":load_quadrilaterals_from_yaml(self.track_parameters_file , 'track_drawings', 'quadrilaterals'),
+            "random_starting_zone_one": load_polygon_from_yaml(self.track_parameters_file , 'energy_boat_parameters', 'random_starting_zone_one'),
+            "random_starting_zone_two": load_polygon_from_yaml(self.track_parameters_file , 'energy_boat_parameters', 'random_starting_zone_two'),
+            "random_starting_zone_three": load_polygon_from_yaml(self.track_parameters_file , 'energy_boat_parameters', 'random_starting_zone_three'),
+            "detection_ranges": load_values_from_yaml(self.track_parameters_file , 'energy_boat_parameters', 'detection_ranges'), 
+            "detection_ranges_for_display": load_values_from_yaml(self.track_parameters_file , 'energy_boat_parameters', 'detection_ranges_for_display'), 
+            "detector_angle_of_view": load_values_from_yaml(self.track_parameters_file , 'energy_boat_parameters', 'detector_angle_of_view'), 
+            "nb_detection_sectors": load_values_from_yaml(self.track_parameters_file , 'energy_boat_parameters', 'nb_detection_sectors'),
+            "distance_ref_px" : load_values_from_yaml(self.track_parameters_file , 'energy_boat_parameters', 'distance_ref_px'),
+            "distance_ref_m" : load_values_from_yaml(self.track_parameters_file , 'energy_boat_parameters', 'distance_ref_m'),
+            "detector_values" : load_values_from_yaml(self.track_parameters_file , 'energy_boat_parameters', 'detector_values'),
+            "directions": load_values_from_yaml(self.track_parameters_file , 'energy_boat_parameters', 'directions'),
+            "speeds": load_values_from_yaml(self.track_parameters_file , 'energy_boat_parameters', 'speeds'),
+            "concurrents_speeds": load_values_from_yaml(self.track_parameters_file , 'energy_boat_parameters', 'concurrents_speeds'),        
+            "frames_per_second": load_values_from_yaml(self.track_parameters_file , 'energy_boat_parameters', 'frames_per_second'),
+            "earth_radius": load_values_from_yaml(self.track_parameters_file , 'energy_boat_parameters', 'earth_radius'),
+            "lat_lon_point_ref_one": load_values_from_yaml(self.track_parameters_file , 'energy_boat_parameters', 'lat_lon_point_ref_one'),
+            "image_point_ref_one": load_values_from_yaml(self.track_parameters_file , 'energy_boat_parameters', 'image_point_ref_one'),
+            "lat_lon_point_ref_two": load_values_from_yaml(self.track_parameters_file , 'energy_boat_parameters', 'lat_lon_point_ref_two'),
+            "image_point_ref_two": load_values_from_yaml(self.track_parameters_file , 'energy_boat_parameters', 'image_point_ref_two'),
+        }
+        self.actionSet = {
+            0: [-1.5, -15],
+            1: [-1.5, -6],
+            2: [-1.5, 0],
+            3: [-1.5, 6],
+            4: [-1.5, 15],
+            5: [-0.6, -15],
+            6: [-0.6, -6],
+            7: [-0.6, 0],
+            8: [-0.6, 6],
+            9: [-0.6, 15],
+            10: [0, -15],
+            11: [0, -6],
+            12: [0, 0],
+            13: [0, 6],
+            14: [0, 15],
+            15: [0.6, -15],
+            16: [0.6, -6],
+            17: [0.6, 0],
+            18: [0.6, 6],
+            19: [0.6, 15],
+            20: [1.5, -15],
+            21: [1.5, -6],
+            22: [1.5, 0],
+            23: [1.5, 6],
+            24: [1.5, 15]
+        }
+
+        self.environnement = EnergyBoatEnv(self.env_config, self.nb_agents)
+        self.environnement.reset()
+        if self.basic_map :
+            self.environnement.inference()
+
+        self.distributional = distributional
+        if self.distributional :
+            self.sample_action = self.sample_distributional_action
+        else :
+            self.sample_action = self.sample_classic_action
+
+    def sample_distributional_action(self, state_tensor1, state_tensor2) :
+        z_val = self.model_main([state_tensor1, state_tensor2], training=False)
+        mus = tf.reduce_mean(z_val, axis=2)
+        actions = tf.argmax(mus, axis=1).numpy()
+        return actions
+    def sample_classic_action(self, state_tensor1, state_tensor2) :
+        q_vals = self.model_main([state_tensor1, state_tensor2], training=False)
+        actions = tf.argmax(q_vals, axis=1).numpy()
+        return actions
+        
+    def run(self) :
+        states = self.environnement.get_env_state()
+        states1 = states[0]
+        states2 = states[1]
+
+        # Main Loop
+        while self.episodes_count < self.max_episodes : 
+
+            if self.render :
+                self.environnement.render()
+                self.frames_buffer.append(self.environnement.frame)
+
+            state_tensor1 = tf.convert_to_tensor(states1) 
+            state_tensor2 = tf.convert_to_tensor(states2)  
+
+            with self.gpu_lock :
+                action = self.sample_action(state_tensor1, state_tensor2)
+                #q_vals = self.model_main([state_tensor1, state_tensor2], training=False) 
+            actions = np.zeros((self.nb_agents, 2))
+            for a in range(states1.shape[0]) :
+                actions[a] = self.actionSet[action[a]]
+    
+            next_states, reward, done, dejadone, us1, us2 = self.environnement.step(actions)
+
+
+            # STORE
+            if np.all(done) :
+                
+                gateways, steps, pannes, colisions = self.environnement.get_inference_metriques()
+
+                print("EPISODE FINI :", gateways, steps, pannes, colisions)
+                if self.save_metrics :
+                    for i in range(self.nb_agents) :
+                        self.metrics_buffer[self.episodes_count, i] = np.array([gateways[i], steps[i], pannes[i], colisions[i]])
+                if self.render :
+                    self.frames_buffer[0].save(self.names["gif_name"]+str(self.episodes_count)+'.gif', save_all=True, append_images=self.frames_buffer[1:], loop=False, duration=200)
+
+                self.episodes_count+=1
+                self.environnement.reset()
+                if self.basic_map : 
+                    self.environnement.inference()
+                        
+            # STATES = NEXT STATE
+            states1 = next_states[0]
+            states2 = next_states[1]
+   
+            self.frames_count+=1
+            
+
+        if self.save_metrics :
+            df = pd.DataFrame(
+                self.metrics_buffer.reshape(-1, 4), 
+                columns=["gateways", "steps", "pannes", "colisions"]
+            )
+
+            df['Agent'] = np.repeat([f"agent_{i+1}" for i in range(self.nb_agents)], self.max_episodes)
+            df['Episodes'] = np.tile(np.arange(self.max_episodes), self.nb_agents)
+
+            df_melted = pd.melt(df, id_vars=["Agent", "Episodes"], var_name="Métrique", value_name="Valeur")
+            df_melted.to_csv(self.names["metrics_name"])

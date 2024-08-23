@@ -361,7 +361,7 @@ class EnergyBoatEnv(gym.Env) :
         
     
     
-    def reset(self, nb_agents=4, seed=None, return_info=False, options=None, rendering=False, nb_steps=1100, render_level=[1, 0, 0], mode=0, inference=False, recharge=False):# cf. https://openprompt.co/conversations/4172
+    def reset(self, nb_agents=4, seed=None, return_info=False, options=None, rendering=False, nb_steps=1100, render_level=[1, 0, 0]):# cf. https://openprompt.co/conversations/4172
                
         super().reset(seed=seed) #cf. https://gymnasium.farama.org/api/env/#gymnasium.Env.reset
         self.nb_agents = nb_agents
@@ -369,8 +369,6 @@ class EnergyBoatEnv(gym.Env) :
         self.render_level = render_level
         self.remaining_time = nb_steps
        
-        self.inference = inference
-        self.recharge = recharge
         self.maps_index = (self.maps_index+1)%self.nb_maps 
         
         maps_infos = self.maps[self.maps_index]
@@ -392,11 +390,7 @@ class EnergyBoatEnv(gym.Env) :
 
         
         self.gateways, self.rayon_gateways = get_gateways(self.big_hexagon, self.small_hexagon)
-        self.recharge_counter = 0
-        self.radius_recharge_point = 50
 
-        
-        self.mode = mode
 
         self.current_gateway = np.tile(self.gateways[0], (self.nb_agents, 1))
         self.next_gateways = np.tile(self.gateways[1], (self.nb_agents, 1))
@@ -407,7 +401,7 @@ class EnergyBoatEnv(gym.Env) :
         self.rewards = np.zeros(self.nb_agents)
         self.sum_rewards = np.zeros(self.nb_agents)
         self.dones = np.zeros(self.nb_agents)
-        self.nb_steps = 0
+        self.nb_steps = np.zeros(self.nb_agents)
         self.dejadones = np.zeros(self.nb_agents)
         self.battery_level = np.ones(self.nb_agents)*100
         self.rayon_bouee = 23
@@ -490,7 +484,6 @@ class EnergyBoatEnv(gym.Env) :
     def step(self, action):
         
         self.dejadones = self.dones
-        self.nb_steps +=1
         self.rewards = np.zeros((self.nb_agents))
 
         self.agent_speeds = np.clip(self.agent_speeds+action[:, 0], 0, 15)
@@ -506,19 +499,20 @@ class EnergyBoatEnv(gym.Env) :
         for i in range(self.nb_agents) :
             reward = 0
             if not self.dejadones[i] :
+                self.nb_steps[i] +=1
                 if not followed_attributed :
                     self.followed = i
                     followed_attributed = True
                 self.agent_positions[i] = new_coords[i]
                 if np.any(dist_bouees[i] < 529) :  
                     if self.timesteps > 20 :
-                      self.nb_colisions+=1
+                      self.nb_colisions[i]+=1
                       self.dones[i] = True
                     reward -= 10
                 else :
                     if np.any(np.concatenate([dist_agents[i, i+1:], dist_agents[i, :i]])<100) :
                         if self.timesteps>20 :
-                            self.nb_colisions+=1
+                            self.nb_colisions[i]+=1
                             self.dones[i] = True
                         reward -= 10
                     else :
@@ -540,7 +534,7 @@ class EnergyBoatEnv(gym.Env) :
                         if self.battery_level[i] < 1 :
                             reward -= 5
                             self.dones[i] = True
-                            self.nb_pannes += 1
+                            self.nb_pannes[i] += 1
 
                        
 
@@ -593,12 +587,15 @@ class EnergyBoatEnv(gym.Env) :
 
     def get_metriques(self):
         return self.nb_gateway_reached, self.nb_laps, self.nb_steps, self.sum_rewards
+    
+    def get_inference_metriques(self):
+        return self.nb_gateway_reached, self.nb_steps, self.nb_pannes, self.nb_colisions
 
 
     def inference(self) :
         self.small_hexagon = self.real_small_h
         self.big_hexagon = self.real_big_h
-        self.starting_zone_polygon = self.starting_zone_polygon
+        self.starting_zone_polygon = self.real_start_zone
         self.bouees = self.real_bouees
         self.agent_positions = generate_points_in_quadrilateral(self.starting_zone_polygon, self.nb_agents, 30)
 
@@ -618,7 +615,6 @@ class EnergyBoatEnv(gym.Env) :
         
     
     def render(self):
-        print("start render")
         if self.render_flag:
             # Dimensions de l'écran
             if self.render_level[0] :
@@ -645,6 +641,5 @@ class EnergyBoatEnv(gym.Env) :
                     
             
                 self.frame = bg
-                print("end render")
 
     

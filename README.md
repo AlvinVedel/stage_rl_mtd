@@ -58,7 +58,7 @@ Le Q-Learning classique du DQN offre des résultats assez limités, c'est en par
 
 
 Le Dueling QR-DQN en inférence :
-![Demo](./plots/inference_dqrdqn.gif)
+![Demo](./plots/gifs/inference_dqrdqn.gif)
 
 *(Le fond de carte est purement a but décoratif, les cartes sont générées aléatoirement. La zone rouge désigne la zone de départ qui n'est plus considérée comme du circuit une fois le 1er objectif atteint)*
 

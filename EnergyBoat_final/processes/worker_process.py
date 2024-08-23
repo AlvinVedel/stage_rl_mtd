@@ -1,7 +1,7 @@
 import multiprocessing as mp
 import numpy as np
 import random
-from EnergyBoatScenario.envNED import EnergyBoatEnv
+from EnergyBoatScenario.env import EnergyBoatEnv
 
 
 class WorkerProcess(mp.Process):
