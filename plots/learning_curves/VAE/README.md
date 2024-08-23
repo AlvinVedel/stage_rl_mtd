@@ -8,3 +8,7 @@ La dimension latente de l'auto-encoder n'influence pas réellement les performan
   <img src="./model2_512.png" width="200" style="display: inline-block; margin-right: 10px;" />
   <img src="./model2_1024.png" width="200" style="display: inline-block; margin-right: 10px;" />
 </div>
+
+*(dans l'ordre, dimension 256, 512, 1024)*
+
+
