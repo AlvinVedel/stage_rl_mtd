@@ -1,6 +1,6 @@
 import numpy as np
 from EnergyBoatScenario.utils_env import *
-from EnergyBoatScenario.env import EnergyBoatEnv
+from EnergyBoatScenario.envNED import EnergyBoatEnv
 import pygame
 from EnergyBoatScenario.pygame_utils import Slider, ScrollableWindow
 import sys

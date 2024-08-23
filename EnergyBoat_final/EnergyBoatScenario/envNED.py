@@ -5,6 +5,7 @@ import sys
 import math
 import random
 import time
+import pygame
 import numpy as np
 from pygame.locals import QUIT
 import gymnasium as gym
@@ -16,43 +17,8 @@ from EnergyBoatScenario.utils_env import *
 from EnergyBoatScenario.view2d import *
 
 
-'''
-In this file, you must write the 4 functions: init, reset, step and render.
-Other functions may be written in the corresponding utils_env.py file
-'''
 
-#import tensorflow as tf
-#from tensorflow.keras import layers
-
-actionSet = {
-    1: [-1.5, -15],
-    2: [-1.5, -6],
-    3: [-1.5, 0],
-    4: [-1.5, 6],
-    5: [-1.5, 15],
-    6: [-0.6, -15],
-    7: [-0.6, -6],
-    8: [-0.6, 0],
-    9: [-0.6, 6],
-    10: [-0.6, 15],
-    11: [0, -15],
-    12: [0, -6],
-    13: [0, 0],
-    14: [0, 6],
-    15: [0, 15],
-    16: [0.6, -15],
-    17: [0.6, -6],
-    18: [0.6, 0],
-    19: [0.6, 6],
-    20: [0.6, 15],
-    21: [1.5, -15],
-    22: [1.5, -6],
-    23: [1.5, 0],
-    24: [1.5, 6],
-    0: [1.5, 15]
-}
 colors = ['red', 'blue', 'green', 'yellow', 'white', 'black', 'purple', 'orange']
-
 
 
 def area_triangle(point1, point2, point3):
@@ -62,22 +28,10 @@ def area_quadrilataire(p1, p2, p3, p4):
     a1 = area_triangle(p1, p2, p3)
     a2 = area_triangle(p3, p4, p1)
     return a1+a2
-"""
-def is_inside_hexagon(points, test_point):
-    total_area = 0
-    for i in range(len(points)):
-        total_area += area_triangle(points[i], points[(i+1)%len(points)], test_point)
-    if len(points) == 4 :
-        area = area_quadrilataire(points[0], points[1], points[2], points[3])
-    else :
-        a1 = area_quadrilataire(points[0], points[1], points[2], points[3])
-        a2 = area_quadrilataire(points[3], points[4], points[5], points[0])
-        area = a1+a2
-    return np.abs(total_area - area) < 0.01
-"""
+
 def is_inside_hexagon(vertices, point):
     """
-    Détermine si un point est à l'intérieur d'un polygone non convexe.
+    Détermine si un point est à l'intérieur d'un polygone convexe ou non convexe.
     
     Arguments:
     point -- Coordonnées du point à tester (x, y).
@@ -100,45 +54,9 @@ def is_inside_hexagon(vertices, point):
     return inside
 
 
-def random_point_in_triangle(triangle):
-    r1 = random.random()
-    r2 = random.random()
-    if r1 + r2 >= 1:
-        r1 = 1 - r1
-        r2 = 1 - r2
-    a, b, c = triangle
-    x = a[0] + r1 * (b[0] - a[0]) + r2 * (c[0] - a[0])
-    y = a[1] + r1 * (b[1] - a[1]) + r2 * (c[1] - a[1])
-    return (x, y)
 
-def random_point_in_quadrilateral(quadrilateral):
-    tri1 = [quadrilateral[0], quadrilateral[1], quadrilateral[2]]
-    tri2 = [quadrilateral[0], quadrilateral[2], quadrilateral[3]]
-    if random.random() < 0.5:
-        return random_point_in_triangle(tri1)
-    else:
-        return random_point_in_triangle(tri2)
-    
-"""
-def random_init_position(nb_agents, quadrilateral) :
-    points = quadrilateral
-
-    x_min, y_min = np.min(points, axis=0)
-    x_max, y_max = np.max(points, axis=0)
-
-    x = np.arange(x_min, x_max, 25)
-    y = np.arange(y_min, y_max, 25)
-    xx, yy = np.meshgrid(x, y)
-    grid_points = np.c_[xx.ravel(), yy.ravel()]
-
-    selected = np.random.choice(np.arange(grid_points.shape[0]), replace=False, size=(nb_agents))
-    points_selected = grid_points[selected]
-    
-
-    return points_selected
-"""
 def generate_random_point_in_quadrilateral(p1, p2, p3, p4):
-    """Generate a random point inside a quadrilateral using bilinear interpolation."""
+    """Genere un point aleatoire dans un quadrilatere definit par 4 points"""
     r1 = random.random()
     r2 = random.random()
     
@@ -148,6 +66,9 @@ def generate_random_point_in_quadrilateral(p1, p2, p3, p4):
     return np.array([x, y])
 
 def generate_points_in_quadrilateral(sz, nb_points, dist):
+      """
+      Genere nb_points dans une zone de depart sz tq les points sont à une distance dist les uns des autres
+      """
       diag = np.eye(nb_points)*dist**3
 
       while True : 
@@ -160,13 +81,17 @@ def generate_points_in_quadrilateral(sz, nb_points, dist):
           return points
 
 
-def generate_circuit(seed=42, a=0, nb_agents=4, distance_agents=30) :
+def generate_circuit(seed=42, pixels_per_meter=1, a=0, nb_agents=4, distance_agents=30) :
+    """
+    Fonction de creation de circuits aléatoires, utilisation de seed pour la reproductibilité des résultats
+    Génère les points et formes géométriques dans un repère pixel puis les convertis en NED grace au pixels_per_meter
+    """
+
     random.seed(seed)
     np.random.seed(seed+10)
     a = math.sqrt(2*a)
     max_x = 1280
     max_y = 720
-    points = []
     # ON DIVISE L IMAGE EN 6 ZONES : 2 DANS LE SENS DE LA HAUTEUR ET 3 DANS LA LARGEUR
     # ON TIRE LES 6 POINTS DE L HEXAGON EXTERIEUR ET ON DEFINIT UN CIRCUIT DE 50 DE LARGEUR
     x1 = random.randint(0+20, int((max_x/3))-50)
@@ -250,6 +175,7 @@ def generate_circuit(seed=42, a=0, nb_agents=4, distance_agents=30) :
 
 
     vector = np.array(small_hexagon[0]) - np.array(big_hexagon[0])
+    # Trouver un vecteur orthogonal
     orthogonal = np.array([-vector[1], vector[0]])
     unit_vector = orthogonal / np.linalg.norm(orthogonal)
     scaled_vector = unit_vector * 300
@@ -260,9 +186,43 @@ def generate_circuit(seed=42, a=0, nb_agents=4, distance_agents=30) :
 
 
     init_pos = generate_points_in_quadrilateral(start_zone, nb_agents, distance_agents)
+   
+    small_hexagon = image_to_ned(small_hexagon[:, 0], small_hexagon[:, 1], pixels_per_meter)
+    big_hexagon = image_to_ned(big_hexagon[:, 0], big_hexagon[:, 1], pixels_per_meter)
+    start_zone = image_to_ned(start_zone[:, 0], start_zone[:, 1], pixels_per_meter)
+    bouees = image_to_ned(bouees[:, 0], bouees[:, 1], pixels_per_meter)
+    init_pos = image_to_ned(init_pos[:, 0], init_pos[:, 1], pixels_per_meter)
+
     return small_hexagon, big_hexagon, start_zone, bouees, init_pos
 
 
+
+
+def image_to_ned(x, y, pixels_per_meter, x_origin=0, y_origin=0):
+    """
+    re implementation de la fonction image_to_ned qui peut prendre en entrée des np array et retourne des np array
+    """
+    delta_x = x - x_origin
+    delta_y = y - y_origin
+    north_y = -delta_y / pixels_per_meter
+    east_x = delta_x / pixels_per_meter
+    if isinstance(x, int) or isinstance(x, float):
+      return np.array([east_x, north_y])
+    else :
+      return np.concatenate([np.expand_dims(east_x, axis=1), np.expand_dims(north_y, axis=1)], axis=1)
+    
+def ned_to_image(east_x, north_y, pixels_per_meter, image_width=1280, image_height=720):
+    """
+    re implementation de ned_to_image qui prend en entrée des np array et retourne des np array
+    """
+    x_origin = 0
+    y_origin = 0
+    x = east_x * pixels_per_meter + x_origin
+    y = -north_y * pixels_per_meter + y_origin
+    if isinstance(east_x, int) or isinstance(east_x, float) :
+      return np.array([x, y]).astype(np.int32)
+    else :
+      return np.concatenate([np.expand_dims(x, axis=1), np.expand_dims(y, axis=1)], axis=1).astype(np.int32)
 
 def tuple_polygon_to_array(polygon):
     """
@@ -273,10 +233,16 @@ def tuple_polygon_to_array(polygon):
         array_polygon[i] = np.array([polygon[i][0], polygon[i][1]])
     return array_polygon
 
-
 class EnergyBoatEnv(gym.Env) : 
+    """
+    classe de l'environnement : 
+    fonction init pour la création, reset pour ramener à un état s0
+    get_env_state pour récupérer l'observation de l'environnement
+    step pour appliquer une action à l'environnement
+    render pour obtenir un retour graphique de l'environnement
+    """
 
-    def __init__(self, env_config, nb_agents=4, recharge=False, battery_consumption='medium', max_steps=1100, know_time=False, init_seed=42) :
+    def __init__(self, env_config, nb_agents=4, battery_consumption='medium', max_steps=-1, init_seed=42) :
         
         # CHARGEMENT DE CERTAINS PARAMETRES DU YAML
         self.font = env_config["font"]
@@ -287,27 +253,32 @@ class EnergyBoatEnv(gym.Env) :
 
         # RECUPERATION ET STOCKAGE DU VRAI CIRCUIT DE LA COURSE
         self.real_big_h = tuple_polygon_to_array(env_config["big_hexagon"])
+        self.real_big_h = image_to_ned(self.real_big_h[:, 0], self.real_big_h[:, 1], self.pixels_per_meter)
         self.real_small_h = tuple_polygon_to_array(env_config["small_hexagon"])
+        self.real_small_h = image_to_ned(self.real_small_h[:, 0], self.real_small_h[:, 1], self.pixels_per_meter)
 
         self.real_start_zone = tuple_polygon_to_array(env_config["starting_zone_polygon"])
         self.real_init_pos = generate_points_in_quadrilateral(self.real_start_zone, nb_agents, 30)
+        self.real_start_zone = image_to_ned(self.real_start_zone[:, 0], self.real_start_zone[:, 1], self.pixels_per_meter)
+        self.real_init_pos = image_to_ned(self.real_init_pos[:, 0], self.real_init_pos[:, 1], self.pixels_per_meter)
 
         self.real_rayon_bouee = env_config["rayon_bouee"]
         self.real_bouees = tuple_polygon_to_array(env_config["bouees"])
+        self.real_big_h = image_to_ned(self.real_bouees[:, 0], self.real_bouees[:, 1], self.pixels_per_meter)
         
         self.screen_width_ned = SCREEN_WIDTH/self.pixels_per_meter  # IMPORTANT
         self.screen_height_ned = SCREEN_HEIGHT/self.pixels_per_meter   # SIGNE - car NED inverse les coordonnées y dans le clip
         
         self.render_flag= True
-
-        ########### ATTRIBUTS AJOUTES #########
-        self.nb_agents = nb_agents
-        self.recharge = recharge
-        self.init_seed = init_seed
-
-        random.seed(self.init_seed)
         
 
+        ########### ATTRIBUTS AJOUTES #########
+
+        self.nb_agents = nb_agents
+        self.init_seed = init_seed
+
+
+        random.seed(self.init_seed)
         # Générer une liste de seeds
         self.num_seeds = 10000
         self.seeds = [random.randint(0, 2**32 - 1) for _ in range(self.num_seeds)]
@@ -316,40 +287,38 @@ class EnergyBoatEnv(gym.Env) :
         self.current_max_seeds = 0
         self.nb_maps = 10
         self.map_counter = 0
-
+        # generation de cartes
         for i in range(self.nb_maps) :
-            small_hexagon, big_hexagon, starting_zone_polygon, bouees, init_pos = generate_circuit(seed = self.seeds[i])
+            small_hexagon, big_hexagon, starting_zone_polygon, bouees, init_pos = generate_circuit(seed = self.seeds[i], pixels_per_meter=self.pixels_per_meter)
             self.maps.append([small_hexagon, big_hexagon, starting_zone_polygon, bouees, init_pos, 0, 0]) # LE PREMIER 0 EST UN BOOLEEN QUI DIT SI LA MAP A ETE COMPLETE, LE 2EME POUR LE NOMBRE DE TRY SUR LA MAP
-            self.current_max_seeds += 1 # = 10
-        #print("SEEDS",self.seeds[:100])
-       
-        self.followed = 0
-        #self.small_hexagon, self.big_hexagon, self.starting_zone_polygon, self.bouees = generate_circuit()
+            self.current_max_seeds += 1
+
+             
+        self.followed = 0 # attribut qui contient le numéro du robot à afficher dans le render
 
         
-          
+        # définition de différent profils de batterie à l'aide de coefficients 
         self.battery_consumption = battery_consumption
-        if self.battery_consumption == 'hard' :
+        if self.battery_consumption == 'hard' :  # environ 300 steps
             self.b0 = 0.2
             self.b1 = 0.005
             self.b2 = 0.05
             self.c1 = 0.01
             self.b3 = 0.03
-        elif self.battery_consumption == 'medium' :
+        elif self.battery_consumption == 'medium' :  # environ 1000 steps
             self.b0 = 0.06
             self.b1 = 0.001
             self.b2 = 0.04
             self.c1 = 0.01
             self.b3 = 0.04
-        elif self.base_consumption_rate == 'easy' :
+        elif self.base_consumption_rate == 'easy' :  # environ 4000 steps
             self.b0 = 0.01
             self.b1 = 0.0005
             self.b2 = 0.006
             self.c1 = 0.001
             self.b3 = 0.006
 
-        self.max_steps = max_steps
-        self.pixels_per_meter = 1
+        self.max_steps = max_steps # paramètre à définir entre 0 et +inf si on veut terminer la course "brutalement" 
         
 
 
@@ -361,77 +330,85 @@ class EnergyBoatEnv(gym.Env) :
         
     
     
-    def reset(self, nb_agents=4, seed=None, return_info=False, options=None, rendering=False, nb_steps=1100, render_level=[1, 0, 0], mode=0, inference=False, recharge=False):# cf. https://openprompt.co/conversations/4172
+    def reset(self, nb_agents=4, seed=None, nb_steps=1100, render_level=[1, 1, 0]):# cf. https://openprompt.co/conversations/4172
                
         super().reset(seed=seed) #cf. https://gymnasium.farama.org/api/env/#gymnasium.Env.reset
         self.nb_agents = nb_agents
-        self.rendering = rendering
-        self.render_level = render_level
-        self.remaining_time = nb_steps
+        self.render_level = render_level  # array de booléen pour savoir quelles parties afficher # 1 : afficher carte et robot 2 : afficher cone de détection 3 : afficher aiguilles etc
+        self.remaining_time = nb_steps # sert à définir un chrono pour la course (inutile sauf dans render)
        
-        self.inference = inference
-        self.recharge = recharge
         self.maps_index = (self.maps_index+1)%self.nb_maps 
         
+        # on récupère la carte [maps_index]
         maps_infos = self.maps[self.maps_index]
         if maps_infos[5] == 1 or maps_infos[6] == 100 : # SOIT ON A REUSSI LA MAPS SOIT ON A DEJA TENTE 100 FOIS
+            # si TRUE : on génère une nouvelle carte qui vient remplacer l'ancienne dans les  "self.nb_maps" qui tournent
             small_hexagon, big_hexagon, starting_zone_polygon, bouees, init_pos = generate_circuit(seed = self.seeds[self.current_max_seeds], a = self.map_counter)
             self.maps[self.maps_index] = [small_hexagon, big_hexagon, starting_zone_polygon, bouees, init_pos, 0, 0]
             self.current_max_seeds += 1
             maps_infos = self.maps[self.maps_index]
             self.map_counter+=1
         
-    
+
+        # chargement des infos de la carte
         self.small_hexagon = maps_infos[0]
         self.big_hexagon = maps_infos[1]
         self.starting_zone_polygon = maps_infos[2]
         self.bouees = maps_infos[3]
         self.agent_positions = maps_infos[4]
-        self.maps[self.maps_index][6] += 1
+        self.maps[self.maps_index][6] += 1 # on incrémente le nombre de try sur la map
         self.timesteps = 0
 
         
         self.gateways, self.rayon_gateways = get_gateways(self.big_hexagon, self.small_hexagon)
-        self.recharge_counter = 0
-        self.radius_recharge_point = 50
 
-        
-        self.mode = mode
-
+        # définitions de variables relatives aux agents
         self.current_gateway = np.tile(self.gateways[0], (self.nb_agents, 1))
         self.next_gateways = np.tile(self.gateways[1], (self.nb_agents, 1))
         self.current_gateway_index = np.zeros(self.nb_agents, dtype=np.int8)
-        self.agent_speeds = np.zeros(self.nb_agents)
+        self.agent_speeds = np.random.randint(0, 30, self.nb_agents)
         self.nb_gateway_reached = np.zeros(self.nb_agents)
         self.nb_laps = np.zeros(self.nb_agents)
         self.rewards = np.zeros(self.nb_agents)
         self.sum_rewards = np.zeros(self.nb_agents)
         self.dones = np.zeros(self.nb_agents)
-        self.nb_steps = 0
+        self.nb_steps = np.zeros(self.nb_agents)
         self.dejadones = np.zeros(self.nb_agents)
         self.battery_level = np.ones(self.nb_agents)*100
         self.rayon_bouee = 23
 
+        # stockage de stats :
         self.nb_colisions = np.zeros(self.nb_agents)
         self.nb_pannes = np.zeros(self.nb_agents)
-              
+        
+
+        # calcul matriciel des directions initiales des agents et leurs distances à l'objectif 
         self.directions_objectif = np.arctan2(self.current_gateway[:, 1]-self.agent_positions[:, 1], self.current_gateway[:,0]-self.agent_positions[:, 0])
         self.agent_directions = self.directions_objectif.copy()    
         self.directions_objectif_suivant = np.arctan2(self.next_gateways[:, 1] - self.agent_positions[:, 1], self.next_gateways[:, 0] - self.agent_positions[:, 0])
+        # 
         dists = np.sqrt(np.sum((np.expand_dims(self.agent_positions, axis=1) - np.expand_dims(self.current_gateway, axis=0))**2, axis=2))  # result 4, 4, 2
         eye = np.eye(self.nb_agents)  # 4, 4
-        diag = dists[np.where(eye)] / np.sqrt(SCREEN_WIDTH**2 + SCREEN_HEIGHT**2)
+        diag = dists[np.where(eye)] / np.sqrt(self.screen_width_ned**2 + self.screen_height_ned**2)
         self.current_gateway_distance = diag
-        self.reward_factor = 1
+
     
         return self.get_env_state()
           
     
 
     def get_env_state(self):
+        """
+        récupère l'état de l'environnement pour tous les agents d'un coup
+        => cela comprend un state1 de l'observation conique des robots (forme d'un vecteur 220,) & une array de variables (forme 6,)
+        
+        """
 
+
+        # initialisation du state1 
         state1 = np.zeros((self.nb_agents, 11, 20))
-       
+        
+        # initialisation du state2 et remplissage avec les informations d'agent
         state2 = np.zeros((self.nb_agents, 6), dtype=np.float32)
         state2[:,0] = self.agent_directions / (2*np.pi)
         state2[:,1] = self.agent_speeds/15
@@ -441,87 +418,102 @@ class EnergyBoatEnv(gym.Env) :
         state2[:,5] = self.current_gateway_distance 
                    
 
-        angles = np.linspace(-11*np.pi/36, 11*np.pi/36, 11)  
-        distances = np.linspace(2, 40, 20)  
-    
+        # AVEC NUMPY ET CALCUL MATRICIEL : on calcule tous les points dans le cone de vision des agents
+        angles = np.linspace(-11*np.pi/36, 11*np.pi/36, 11)   # 11
+        distances = np.linspace(2, 40, 20)  # 20
         agents_cones = np.tile(angles, [self.nb_agents, 1]) + np.expand_dims(self.agent_directions, axis=1)   # 10, 11
         agents_cones = np.concatenate([np.expand_dims(np.cos(agents_cones), axis=2), np.expand_dims(np.sin(agents_cones), axis=2)], axis=2)
         all_points = np.expand_dims(np.expand_dims(self.agent_positions, axis=1), axis=1) + np.expand_dims(agents_cones, axis=2) * np.expand_dims(np.tile(distances, [self.nb_agents, 1, 1]), axis=3)
 
 
+        # avec boucle for on parcourt pour chaque agent si un de ses points est proche d'un obstacle ou d'un concurrent
         for i in range(self.nb_agents) :
             concurrents_positions = np.concatenate([self.agent_positions[0:i], self.agent_positions[i+1:]])
 
-            my_points = all_points[i]   
+            # Calcul distances     des points du cone à concurrents donc 11, 20, 2 à 9, 2   => 11, 20, 1, 2  et 1, 1, 9, 2  => avec somme 11, 20, 9 + cond et any   11, 20
+            my_points = all_points[i]   # 11, 20, 2   
             dist_a_conc = np.any(np.sum( (np.expand_dims(my_points, axis=2) - np.expand_dims(np.expand_dims(concurrents_positions, axis=0), axis=0)   )**2 , axis=3  ) < 10**2, axis=2)
             dist_a_boue = np.any(np.sum( (np.expand_dims(my_points, axis=2) - np.expand_dims(np.expand_dims(self.bouees, axis=0), axis=0)   )**2 , axis=3  ) < 23**2, axis=2)
 
+            # On a 2 mask de booléens : union puis propagation
             double_mask = np.concatenate([np.expand_dims(dist_a_conc, axis=-1), np.expand_dims(dist_a_boue, axis=-1)], axis=-1)
             mask_final = np.any(double_mask, axis=2)
 
             indices = np.argwhere(mask_final)
-            ind_direc = np.unique(indices[:, 0])  
+            ind_direc = np.unique(indices[:, 0])  # LES INDICES DE DIRECTIONS CONCERNES PAR UN OBSTACLE
+            # 2ème boucle sert pour la propagation : si à 3m on a un obstacle on détecte des obstacles sur toute la direction
             for ind in ind_direc :
                 first = np.min(np.squeeze(np.argwhere(indices[:, 0]==ind), axis=1))
                 dist_min = indices[first]
                 state1[i, dist_min[0], dist_min[1]:] = 2
-                
+        
+        # on récupère tous les points qui ne sont pas bloquées pas un obstacle
         points_restants = np.argwhere(state1==0)
+        # et on vérifie si ils sont dans le circuit (0) ou en dehors (1)
         for p in points_restants :
             point = all_points[p[0], p[1], p[2]]
             if self.nb_gateway_reached[i] > 0 :
+                # si on a atteint 1 point de passage alors on est dans le circuit et la zone de depart disparait
                 if is_inside_hexagon(self.small_hexagon, point) :
                     state1[p[0], p[1], p[2]] = 1
                 elif not is_inside_hexagon(self.big_hexagon, point) :
                     state1[p[0], p[1], p[2]] = 1
-
+                    
             else :
                 if not is_inside_hexagon(self.starting_zone_polygon, point) :
                     if not is_inside_hexagon(self.big_hexagon, point) or is_inside_hexagon(self.small_hexagon, point)  :
                         state1[p[0], p[1], p[2]] = 1
-        state1 = state1.reshape(self.nb_agents, 220) 
-        self.state1 = state1[self.followed]
+
+        state1 = state1.reshape(self.nb_agents, 220) # nb agents, 220  (équivalent à flatten mais conserve dim de l'agent)
+        self.state1 = state1[self.followed] # on stocke le cone de l'agent "followed" pour afficher dans le render
         state = [state1, state2]
 
-
+       
         return state
     
         
     def step(self, action):
-        
-        self.dejadones = self.dones
-        self.nb_steps +=1
+        """
+        fonction de step qui prend en entrée une matrice d'actions de shape nb_agents, 2 
+        avec une vitesse en 0 et un angle en 1 
+        """
+
+        self.dejadones = self.dones # on synchronise les dejadones avec les dones pour ne plus jouer les robots dones
         self.rewards = np.zeros((self.nb_agents))
 
-        self.agent_speeds = np.clip(self.agent_speeds+action[:, 0], 0, 15)
+        # on calcules nouvelles vitesses, directions et positions  à partir des actions
+        self.agent_speeds = np.clip(self.agent_speeds+action[:, 0], 0, 30)  # entre 0 et 30 km
         self.agent_directions = (self.agent_directions+np.deg2rad(action[:, 1])) % (2*np.pi)
         conso = (self.b0 + self.agent_speeds*self.b1 + self.b2*abs(action[:, 0]+self.c1) + abs(np.deg2rad(action[:, 1]))*self.b3)
         self.battery_level = np.clip(self.battery_level-conso, 0, 100)
-        new_coords = np.clip(self.agent_positions + np.concatenate([np.expand_dims(np.cos(self.agent_directions)*self.agent_speeds, axis=1), np.expand_dims(np.sin(self.agent_directions)*self.agent_speeds, axis=1)], axis=1), [0, 0], [SCREEN_WIDTH, SCREEN_HEIGHT])
+        new_coords = np.clip(self.agent_positions + np.concatenate([np.expand_dims(np.cos(self.agent_directions)*self.agent_speeds/3.6, axis=1), np.expand_dims(np.sin(self.agent_directions)*self.agent_speeds/3.6, axis=1)], axis=1), [0, -self.screen_height_ned], [self.screen_width_ned, 0])
+        # division par 3.6 on consière qu'on fait 1 step par seconde 
         dist_bouees = np.sum((np.expand_dims(new_coords, axis=1) - np.expand_dims(self.bouees, axis=0))**2, axis=2)
         dist_agents = np.sum((np.expand_dims(new_coords, axis=1) - np.expand_dims(new_coords, axis=0))**2, axis=2)
 
-        followed_attributed = False
 
+        followed_attributed = False  # on cherche à attribuer followed à un agent vivant
         for i in range(self.nb_agents) :
             reward = 0
-            if not self.dejadones[i] :
+            if not self.dejadones[i] :  # si l'agent n'est pas déjà mort au tour d'avant alors on calcule son reward
+                self.nb_steps[i] += 1
                 if not followed_attributed :
                     self.followed = i
                     followed_attributed = True
-                self.agent_positions[i] = new_coords[i]
-                if np.any(dist_bouees[i] < 529) :  
-                    if self.timesteps > 20 :
+                self.agent_positions[i] = new_coords[i]  # on attribue les coordonnées
+
+                if np.any(dist_bouees[i] < 529) :   # si colision avec bouee
+                    if self.timesteps > 20 : # si moins de 20 steps les colisions ne tuent pas
                       self.nb_colisions+=1
                       self.dones[i] = True
-                    reward -= 10
-                else :
-                    if np.any(np.concatenate([dist_agents[i, i+1:], dist_agents[i, :i]])<100) :
+                    reward -= 12
+                else :  
+                    if np.any(np.concatenate([dist_agents[i, i+1:], dist_agents[i, :i]])<100) :  # si colision avec concurrent
                         if self.timesteps>20 :
                             self.nb_colisions+=1
                             self.dones[i] = True
-                        reward -= 10
-                    else :
+                        reward -= 8
+                    else :  # si aucune colision
                         
                         if np.sum((self.agent_positions[i] - self.current_gateway[i])**2) < self.rayon_gateways[self.current_gateway_index[i]]**2 :
                             reward+= 10 
@@ -532,17 +524,14 @@ class EnergyBoatEnv(gym.Env) :
                             self.nb_laps[i] = (self.nb_gateway_reached[i]-1)//6
                             if (self.nb_gateway_reached[i]-1) % 6 == 0 and self.nb_gateway_reached[i] > 1 :
                                 print("l'agent a fait un tour!!!")
-                               
-                                self.maps[self.maps_index][5] = 1
+                                self.maps[self.maps_index][5] = 1  # on considère la carte comme achevé car un agent a réussi à faire un tour
                         
-                        
+
                         # VERIFICATION BATTERIE
-                        if self.battery_level[i] < 1 :
-                            reward -= 5
+                        if self.battery_level[i] < 1 :  # mort si moins de 1%
+                            reward -= 3
                             self.dones[i] = True
                             self.nb_pannes += 1
-
-                       
 
                         # INTEGRATION DISTANCE DANS REWARD AVEC PALIER SUR LA DISTANCE NORMALISEE
                         gateway_distance = np.sum(np.abs(np.array(self.current_gateway[i]) - np.array(self.agent_positions[i])))  / np.sqrt(self.screen_width_ned**2 + self.screen_height_ned**2)
@@ -568,32 +557,37 @@ class EnergyBoatEnv(gym.Env) :
                 
         
                     
-                self.rewards[i] = reward*self.reward_factor/40
-                
-        
+                self.rewards[i] = reward/40   # on divise les reward par 40 pour qu'ils soient proches de 0 et on le stocke dans l'attribut d'environnement
+               
 
-        self.sum_rewards += self.rewards
+        self.sum_rewards += self.rewards  # stocke la somme des reward pour un épisode 
+        # recalcul attributs de directions et distances en matriciel
         self.directions_objectif = np.arctan2(self.current_gateway[:, 1]-self.agent_positions[:, 1], self.current_gateway[:,0]-self.agent_positions[:, 0])
         self.directions_objectif_suivant = np.arctan2(self.next_gateways[:, 1] - self.agent_positions[:, 1], self.next_gateways[:, 0] - self.agent_positions[:, 0])
         self.timesteps+=1
 
-        
-        dists = np.sqrt(np.sum((np.expand_dims(self.agent_positions, axis=1) - np.expand_dims(self.current_gateway, axis=0))**2, axis=2)) 
-        eye = np.eye(self.nb_agents)  
-        diag = dists[np.where(eye)] / np.sqrt(SCREEN_WIDTH**2 + SCREEN_HEIGHT**2) 
+        # 4, 1, 2 et 1, 4, 2 ==> 4, 4
+        dists = np.sqrt(np.sum((np.expand_dims(self.agent_positions, axis=1) - np.expand_dims(self.current_gateway, axis=0))**2, axis=2))  # result 4, 4, 2
+        # les distance de l'agent i à chaque gateway, ce qui nous intéresse c'est les distances de l'agent i à la gateway i donc la diagonale
+        eye = np.eye(self.nb_agents)  # 4, 4
+        diag = dists[np.where(eye)] / np.sqrt(self.screen_width_ned**2 + self.screen_height_ned**2) 
         self.current_gateway_distance = diag
 
         return self.get_env_state(), self.rewards, self.dejadones, self.dones, "", ""
        
 
     def gen_new_map(self, seed) :
-        small_hexagon, big_hexagon, starting_zone_polygon, bouees, init_pos =  generate_circuit(seed)
-        self.maps[0] = [small_hexagon, big_hexagon, starting_zone_polygon, bouees, init_pos, 0, 0]
+        # permet de générer une nouvelle carte pour écraser l'actuelle 0, fonction utilisée principalement pour les inférences
+        if seed == None :
+            self.maps[0] = [self.real_small_h, self.real_big_h, self.real_start_zone, self.real_bouees, self.real_init_pos, 0, 0]
+        else: 
+            small_hexagon, big_hexagon, starting_zone_polygon, bouees, init_pos =  generate_circuit(seed)
+            self.maps[0] = [small_hexagon, big_hexagon, starting_zone_polygon, bouees, init_pos, 0, 0]
         self.maps_index = -1
 
     def get_metriques(self):
         return self.nb_gateway_reached, self.nb_laps, self.nb_steps, self.sum_rewards
-
+    
 
     def inference(self) :
         self.small_hexagon = self.real_small_h
@@ -614,28 +608,34 @@ class EnergyBoatEnv(gym.Env) :
         eye = np.eye(self.nb_agents) 
         diag = dists[np.where(eye)] / np.sqrt(self.screen_width_ned**2 + self.screen_height_ned**2)
         self.current_gateway_distance = diag
-
         
-    
+
     def render(self):
-        print("start render")
+        """
+        fonction render qui produit retour graphique sur l'environnement
+        utilise variable "render_level" pour décider quelles parties dessiner (très couteux tout à chaque fois + dessins sur les circuits aléatoires donc masqués)
+        => fait render en utilisant PIL 
+        pour utiliser la fonction faire env.render() puis ensuite récupérer l'attribut env.frame dans une liste (en stockant N frames produit gif)
+        """
         if self.render_flag:
             # Dimensions de l'écran
             if self.render_level[0] :
 
-                width, height = SCREEN_WIDTH, SCREEN_HEIGHT
+                width, height = self.screen_width_ned, self.screen_height_ned
                 
                 # Charger l'image de fond
                 bg = Image.open(self.monaco_map).convert("RGBA")
                 draw = ImageDraw.Draw(bg)
                 
-                draw_bouees(draw, self.bouees, self.rayon_bouee)
-                draw_current_gateway(draw, colors, self.current_gateway, self.rayon_gateways[self.current_gateway_index])
-                draw_circuit(draw, self.big_hexagon, self.small_hexagon, self.starting_zone_polygon)
+                draw_bouees(draw, ned_to_image(self.bouees[:, 0], self.bouees[:, 1], self.pixels_per_meter), self.rayon_bouee)
+                draw_current_gateway(draw, colors, ned_to_image(self.current_gateway[:, 0], self.current_gateway[:, 1], self.pixels_per_meter), self.rayon_gateways[self.current_gateway_index])
+                draw_circuit(draw, ned_to_image(self.big_hexagon[:, 0], self.big_hexagon[:, 1], self.pixels_per_meter), 
+                             ned_to_image(self.small_hexagon[:, 0], self.small_hexagon[:, 1], self.pixels_per_meter),
+                              ned_to_image(self.starting_zone_polygon[:, 0], self.starting_zone_polygon[:, 1], self.pixels_per_meter))
                 
-                draw_boat_circle(draw, self.agent_positions, self.dones, colors)
-                draw_boat_triangle(draw, self.agent_positions, self.agent_directions, self.dones, colors)
-                draw_detection_field(draw, self.agent_positions, self.agent_directions, self.dones, colors)
+                draw_boat_circle(draw, ned_to_image(self.agent_positions[:, 0], self.agent_positions[:, 1], self.pixels_per_meter), self.dones, colors)
+                draw_boat_triangle(draw, ned_to_image(self.agent_positions[:, 0], self.agent_positions[:, 1], self.pixels_per_meter), self.agent_directions, self.dones, colors)
+                draw_detection_field(draw, ned_to_image(self.agent_positions[:, 0], self.agent_positions[:, 1], self.pixels_per_meter), self.agent_directions, self.dones, colors)
 
                 if self.render_level[1] :
                     draw_detections_table(draw, self.font, np.reshape(self.state1, [220]))
@@ -645,6 +645,6 @@ class EnergyBoatEnv(gym.Env) :
                     
             
                 self.frame = bg
-                print("end render")
 
-    
+
+
