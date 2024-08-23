@@ -745,7 +745,7 @@ class InferenceThreadProcess(threading.Thread) :
         self.save_metrics=save_metrics
         self.max_episodes = nb_inferences
         self.nb_agents = nb_agents
-        self.basic_map = True
+        self.basic_map = basic_map
         if self.save_metrics :
             self.metrics_buffer = np.zeros((self.max_episodes, self.nb_agents, 4))  
             # pour chaque épisode et chaque agent on stocke nb_gateways, nb_steps, panne (bool), colisions (bool)
