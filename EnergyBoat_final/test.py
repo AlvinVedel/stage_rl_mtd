@@ -5,7 +5,7 @@ import threading
 os.environ["CUDA_VISIBLE_DEVICES"] = ""
 from processes.thread_process import InferenceThreadProcess
 
-model = tf.keras.models.load_model("../trained_models/speeded_up_doubleTrain_dueling_qr.h5")
+model = tf.keras.models.load_model("../trained_models/dqr_dqn.h5")
 names = {"gif_name" : "gif_inference", "metrics_name":"data_dueling_qr.csv"}
 
 gpu_lock = threading.Lock()
